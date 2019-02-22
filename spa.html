@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SPA</title>
+    <script src="http://code.jquery.com/jquery-3.2.1.min.js"> </script>
+    <script> 
+        $(document).ready(function() {
+            var sky_event = 
+                'http://localhost:8080/sky/cloud/FhYYn1nz9WsUzwjXMowiVw/'
+            var get_temp_url = sky_event 
+                + 'temperature_store/get_current_temp'
+            var get_all_temps_url = sky_event 
+                + "temperature_store/temperatures"
+            var get_threshold_violations_url = sky_event 
+                + "temperature_store/threshold_violations"
+            var get_current_name_url = sky_event 
+                + "sensor_profile/get_name"
+            var get_current_location_url = sky_event
+                + "sensor_profile/get_location"
+            var get_current_number_url = sky_event
+                + "sensor_profile/get_to_number"
+            var get_current_threshold_url = sky_event
+                + "sensor_profile/get_temp_threshold"
+            var update_profile_url = 'http://localhost:8080/sky/event/FhYYn1nz9WsUzwjXMowiVw/fake_eeid/'
+                + "sensor/profile_updated"
+
+            $("#refresh_button").click(function(e){
+                $.ajax({
+                    url:get_temp_url,
+                    dataType: "json",
+                    success: function(data){
+                        $('#temp').html("current temperature: " + data + "C" )
+                    }
+                })
+                $.ajax({
+                    url:get_all_temps_url,
+                    dataType: "json",
+                    success: function(data){
+                        console.log("recent temperatures = " + data)
+                        everything = "recent temperatures <br> <ul>";
+
+                        if (data.length > 3){
+                            for (i = data.length-3; i < data.length; i++){
+                                 everything += "<li> temp: " + data[i]['temp'] + 
+                                    " timestamp: " + data[i]['timestamp']       
+                            }
+                        }
+                        everything += "</ul>";
+                        $('#temp_results').html(everything)
+                    }
+                })
+
+                $.ajax({
+                    url:get_threshold_violations_url,
+                    dataType: "json",
+                    success: function(data){
+                        everything = "<br> threshold violations <br> <ul>";
+
+                        for (i = 0; i < data.length; i++){
+                             everything += "<li> temp: " + data[i]['temp'] + 
+                                " timestamp: " + data[i]['timestamp']       
+                        }
+                        everything += "</ul>";
+                        $('#threshold_violations').html(everything)
+                    }
+                })
+
+                $.ajax({
+                    url:get_current_name_url,
+                    dataType: "json",
+                    success: function(data){
+                        console.log(data)
+                        $('#currentName').html("Current Name: " + data)
+                    }
+                })
+
+                $.ajax({
+                    url:get_current_location_url,
+                    dataType: "json",
+                    success: function(data){
+                        console.log(data)
+                        $('#currentLocation').html("Current Location: " + data)
+                    }
+                })
+
+                $.ajax({
+                    url:get_current_number_url,
+                    dataType: "json",
+                    success: function(data){
+                        console.log(data)
+                        $('#currentNumber').html("Current Number: " + data)
+                    }
+                })
+
+                $.ajax({
+                    url:get_current_threshold_url,
+                    dataType: "json",
+                    success: function(data){
+                        console.log(data)
+                        $('#currentThreshold').html("Current Threshold: " + data)
+                    }
+                })
+
+            });
+
+            $("#updateButton").click(function(e){
+                // console.log(typeof $("#nameField").val());  
+                // name = $("#nameField").val();
+                // location = $("#locationField").val();
+                // number = $("#contactNumberField").val();
+                // threshol = $("#thresholdField").val();
+                console.log(JSON.stringify({"name":$("#nameField").val(),
+                                          "location":$("#locationField").val(),
+                                          "to_number":$("#contactNumberField").val(),
+                                          "temp_threshold":$("#thresholdField").val()}))
+
+                $.ajax({
+                    url:update_profile_url,
+                    type: "POST",
+                    dataType: "json",
+                    contentType: 'application/json',
+                    data: JSON.stringify({"name":$("#nameField").val(),
+                                          "location":$("#locationField").val(),
+                                          "to_number":$("#contactNumberField").val(),
+                                          "temp_threshold":$("#thresholdField").val()}),
+                    success: function(data){
+                        console.log("we pushed successfully")
+                    }
+                })
+                e.preventDefault();
+            })
+      });
+
+    </script>
+
+</head>
+<body>
+    <button type="button" id="refresh_button"> Refresh </button>
+    <p id="temp">current temperature: </p>
+    <div id="temp_results">recent temperatures </div>
+    <div id="threshold_violations">threshold violations</div>
+    <h1>Profile</h1>
+    <p id="currentName">Current Name: </p>
+    <p id="currentLocation">Current Location:</p>
+    <p id="currentNumber">Current Number:</p>
+    <p id="currentThreshold">Current Threshold:</p>
+    <h1>Edit Profile</h1>
+
+    name <input type="text" id="nameField" >  <br>
+    Location <input type="text" id="locationField" >  <br>
+    contact number<input type="text" id="contactNumberField" >  <br>
+    threshold<input type="text" id="thresholdField" >  <br>
+    <input id="updateButton" type="button" type="submit" value="update"> 
+
+</body>
+</html>
+
+
+
+
+
+

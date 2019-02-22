@@ -4,19 +4,19 @@ ruleset wovyn_base {
         use module io.picolabs.twilio_v2 alias twilio
             with account_sid = keys:twilio{"account_sid"}
                  auth_token  = keys:twilio{"auth_token"}
+        use module sensor_profile
 
     }
     global{
-        temperature_threshold = 90                    
-        to = 7633505859
         from = 17634529729
+
     }
     rule hearbeat{
         select when wovyn heartbeat
         pre {
                 isGenericThing = (event:attr("GenericThing") != "")
                             //if true            grab the temp
-                temperatur = (isGenericThing) => event:attr("temperature") | null
+                temperature = (isGenericThing) => event:attr("temperature") | null
                 //z = (x > y) => y | x
         }
         if isGenericThing then 
@@ -36,7 +36,7 @@ ruleset wovyn_base {
             temperature = event:attr("temperature")
             timestamp = event:attr("timestamp")
         }
-        if temperature > temperature_threshold then
+        if temperature > sensor_profile:get_temp_threshold() then
             send_directive("there was a threshold violation")
         fired {
             raise wovyn event "threshold_violation"
@@ -53,13 +53,17 @@ ruleset wovyn_base {
             timestamp = event:attr("timestamp")
         }
         every{
-            twilio:send_sms(to,
+            twilio:send_sms(sensor_profile:get_to_number(),
                             from,
-                            "WARNING: GPU temperature is " + temerature + "C: exceeding threshold of " + temperature_threshold)
-            send_directive("WARNING: GPU temperature is " + temerature + "C: exceeding threshold of " + temperature_threshold)
+                            "WARNING: GPU temperature is " + temperature + "C: exceeding threshold of " + sensor_profile:get_temp_threshold())
+            send_directive("WARNING: GPU temperature is " + temperature + "C: exceeding threshold of " +sensor_profile:get_temp_threshold())
         }
 
     }
 }
+
+
+
+
 
 
